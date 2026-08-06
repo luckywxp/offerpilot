@@ -1,0 +1,178 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OfferPilot｜AI 面试训练与求职管理</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">✨</div>
+        <div>
+          <h1>OfferPilot</h1>
+          <p>你的 AI 求职搭子</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-page="dashboard">首页</button>
+        <button class="nav-item" data-page="interview">模拟面试</button>
+        <button class="nav-item" data-page="reviews">面试复盘</button>
+        <button class="nav-item" data-page="resume">简历优化</button>
+        <button class="nav-item" data-page="applications">投递管理</button>
+      </nav>
+      <div class="side-card">
+        <strong>今日建议</strong>
+        <p>选择一个目标岗位，完成 20 分钟模拟面试，复盘会更精准。</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section id="dashboard" class="page active">
+        <div class="hero">
+          <div>
+            <span class="eyebrow">AI Interview & Job Tracker</span>
+            <h2>练面试、改简历、管投递，一站搞定</h2>
+            <p>面向实习生、校招生和转行求职者，帮你把每一次投递和面试都变成可复盘、可进步的资产。</p>
+            <div class="hero-actions">
+              <button class="primary" data-jump="interview">开始模拟面试</button>
+              <button class="secondary" data-jump="resume">优化简历</button>
+            </div>
+          </div>
+          <div class="hero-card">
+            <div class="pulse">🎙️</div>
+            <h3>20 分钟 AI 模拟面试</h3>
+            <p>支持 HR / 业务 / 技术 / 压力面角色切换，文字和语音都能练。</p>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><span id="statInterviews">0</span><p>面试记录</p></div>
+          <div class="stat-card"><span id="statApplications">0</span><p>投递岗位</p></div>
+          <div class="stat-card"><span id="statResume">0</span><p>简历版本</p></div>
+          <div class="stat-card"><span id="statFollowups">0</span><p>进行中岗位</p></div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="panel">
+            <div class="panel-header"><h3>快捷入口</h3></div>
+            <div class="quick-actions">
+              <button data-jump="interview">🎤 模拟面试</button>
+              <button data-jump="resume">📄 上传 / 生成简历</button>
+              <button data-jump="applications">📌 添加投递记录</button>
+              <button data-jump="reviews">🧠 查看复盘</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h3>最近复盘</h3></div>
+            <div id="recentReviews" class="empty">还没有复盘记录，先完成一次模拟面试吧。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="interview" class="page">
+        <div class="page-title">
+          <span class="eyebrow">Mock Interview</span>
+          <h2>模拟面试</h2>
+          <p>填写岗位信息，选择面试官角色，AI 会一问一答并根据回答追问。</p>
+        </div>
+        <div class="two-column">
+          <form id="interviewForm" class="panel form-panel">
+            <label>岗位名称<input id="jobTitle" required placeholder="如：产品经理实习生" /></label>
+            <label>公司名称<input id="companyName" required placeholder="如：某互联网公司" /></label>
+            <label>JD 原文<textarea id="jobDescription" required placeholder="粘贴岗位描述、任职要求等"></textarea></label>
+            <label>面试类型<select id="interviewType"><option>HR 面</option><option>业务面</option><option>技术面</option><option>压力面</option></select></label>
+            <label>回答方式<select id="answerMode"><option>文字问答</option><option>语音问答</option></select></label>
+            <label>关联简历<select id="linkedResume"><option value="">不关联简历</option></select></label>
+            <button class="primary" type="submit">生成面试问题</button>
+          </form>
+          <div class="panel interview-room">
+            <div class="panel-header"><h3>面对面面试</h3><span id="voiceStatus" class="badge">待开始</span></div>
+            <div class="interviewer-stage">
+              <div class="avatar-card">
+                <div id="avatarFace" class="avatar-face listening-idle">
+                  <div class="avatar-hair"></div>
+                  <div class="avatar-eyes"><span></span><span></span></div>
+                  <div class="avatar-mouth"></div>
+                </div>
+                <div class="sound-wave"><span></span><span></span><span></span><span></span></div>
+              </div>
+              <div class="interviewer-copy">
+                <span class="eyebrow">AI Interviewer</span>
+                <h3 id="interviewerName">小 O 面试官</h3>
+                <p id="interviewerLine">开始面试后，我会像真人面试官一样语音提问，并在你回答后自动追问。</p>
+                <div class="voice-actions">
+                  <button id="startVoiceInterview" class="primary" type="button">开始面对面语音面试</button>
+                  <button id="pauseVoiceInterview" class="secondary" type="button">暂停语音</button>
+                </div>
+              </div>
+            </div>
+            <div id="chatBox" class="chat-box"><div class="empty">开始后，AI 面试官会在这里同步显示问答记录。</div></div>
+            <div class="answer-bar">
+              <textarea id="answerInput" placeholder="语音识别结果会自动出现在这里；也可以手动修改后提交"></textarea>
+              <div class="answer-actions">
+                <button id="sendAnswer" class="primary" type="button">提交文字回答</button>
+                <button id="finishInterview" class="ghost" type="button">结束并复盘</button>
+              </div>
+              <p id="recordHint" class="hint">点击“开始面对面语音面试”授权一次麦克风后，系统会在 AI 提问结束后自动听你的回答。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="reviews" class="page">
+        <div class="page-title"><span class="eyebrow">Review</span><h2>面试复盘</h2><p>查看每次面试的问题、回答和优化建议。</p></div>
+        <div id="reviewList" class="card-list"></div>
+      </section>
+
+      <section id="resume" class="page">
+        <div class="page-title"><span class="eyebrow">Resume Builder</span><h2>简历优化</h2><p>支持上传、诊断、按 JD 改写、一键生成，并可下载 Word。</p></div>
+        <div class="two-column">
+          <div class="panel form-panel">
+            <label>简历名称<input id="resumeName" placeholder="如：产品岗中文简历 V1" /></label>
+            <label>目标岗位 / JD<textarea id="resumeJD" placeholder="粘贴目标岗位 JD，AI 会按岗位优化表达"></textarea></label>
+            <label>简历内容<textarea id="resumeContent" class="large" placeholder="粘贴已有简历内容，或填写教育经历、实习经历、项目经历、技能等"></textarea></label>
+            <div class="button-row">
+              <button id="diagnoseResume" class="secondary" type="button">诊断简历</button>
+              <button id="rewriteResume" class="secondary" type="button">按 JD 改写</button>
+              <button id="saveResume" class="primary" type="button">保存版本</button>
+            </div>
+            <button id="downloadWord" class="ghost" type="button">下载 Word</button>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h3>AI 建议 / 可编辑预览</h3></div>
+            <textarea id="resumePreview" class="preview-editor" placeholder="这里会显示诊断建议、改写后的简历或生成内容，可继续编辑。"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section id="applications" class="page">
+        <div class="page-title"><span class="eyebrow">Application Tracker</span><h2>投递管理</h2><p>用表格管理岗位，并为每个岗位记录多节点进度时间线。</p></div>
+        <form id="applicationForm" class="panel application-form">
+          <input id="appJob" required placeholder="岗位名称" />
+          <input id="appCompany" required placeholder="公司名称" />
+          <input id="appCity" placeholder="城市" />
+          <input id="appDate" type="date" />
+          <input id="appUrl" placeholder="投递网址" />
+          <select id="appStatus"><option>待投递</option><option>已投递</option><option>笔试</option><option>一面</option><option>二面</option><option>三面</option><option>Offer</option><option>已结束</option></select>
+          <textarea id="appJD" placeholder="JD 原文"></textarea>
+          <textarea id="appNotes" placeholder="备注"></textarea>
+          <button class="primary" type="submit">添加岗位</button>
+        </form>
+        <div class="panel table-panel">
+          <table>
+            <thead><tr><th>岗位</th><th>公司</th><th>城市</th><th>投递时间</th><th>最新进度</th><th>网址</th><th>操作</th></tr></thead>
+            <tbody id="applicationTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
+
