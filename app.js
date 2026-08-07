@@ -5,6 +5,8 @@ let currentInterview = null;
 let recognition = null;
 let voiceModeActive = false;
 let isListening = false;
+let manualEditing = false;
+let manualTimer = null;
 
 const questions = [
   '请先做一个 1 分钟自我介绍，并重点说明你为什么适合这个岗位。',
@@ -61,12 +63,20 @@ $('sendAnswer').addEventListener('click', () => {
   submitAnswer(false);
 });
 
+$('answerInput').addEventListener('input', () => {
+  manualEditing = true;
+  if (manualTimer) clearTimeout(manualTimer);
+  manualTimer = setTimeout(() => { manualEditing = false; }, 1200);
+});
+
 $('finishInterview').addEventListener('click', () => {
   if (!currentInterview) return toast('还没有进行中的面试');
   voiceModeActive = false;
   window.speechSynthesis?.cancel();
   if (recognition && isListening) recognition.stop();
   updateVoiceStatus('已结束', 'listening-idle');
+  manualEditing = false;
+  if (manualTimer) clearTimeout(manualTimer);
   const answers = currentInterview.messages.filter(m => m.role === 'user').map(m => m.text).join('\n');
   currentInterview.review = buildReview(answers, currentInterview.jd);
   data.interviews.unshift(currentInterview);
@@ -144,7 +154,8 @@ function startListening() {
       if (event.results[index].isFinal) finalText += text;
       else interimText += text;
     }
-    $('answerInput').value = finalText || interimText;
+    const field = $('answerInput');
+    if (!manualEditing || !field.value.trim()) field.value = finalText || interimText;
   };
   recognition.onerror = () => {
     isListening = false;
@@ -155,7 +166,7 @@ function startListening() {
     isListening = false;
     if (!voiceModeActive) return;
     const answer = $('answerInput').value.trim();
-    if (answer) submitAnswer(true);
+    if (answer && !manualEditing) submitAnswer(true);
     else {
       updateVoiceStatus('等待回答', 'listening');
       setTimeout(startListening, 600);
@@ -168,6 +179,7 @@ function submitAnswer(fromVoice = false) {
   if (!currentInterview) return toast('请先生成面试问题');
   const answer = $('answerInput').value.trim();
   if (!answer) return toast('请先输入回答');
+  manualEditing = false;
   addMessage('user', answer);
   $('answerInput').value = '';
   const userCount = currentInterview.messages.filter(m => m.role === 'user').length;
@@ -179,6 +191,8 @@ function submitAnswer(fromVoice = false) {
 $('startVoiceInterview').addEventListener('click', () => {
   if (!currentInterview) return toast('请先填写信息并生成面试问题');
   voiceModeActive = true;
+  manualEditing = false;
+  if (manualTimer) clearTimeout(manualTimer);
   const lastAiMessage = [...currentInterview.messages].reverse().find(message => message.role === 'ai');
   $('recordHint').textContent = '面对面语音模式已开启：面试官说完后，你直接回答即可。停顿后系统会自动提交并追问。';
   speak(lastAiMessage?.text || questions[0], startListening);
@@ -186,6 +200,8 @@ $('startVoiceInterview').addEventListener('click', () => {
 
 $('pauseVoiceInterview').addEventListener('click', () => {
   voiceModeActive = false;
+  manualEditing = false;
+  if (manualTimer) clearTimeout(manualTimer);
   window.speechSynthesis?.cancel();
   if (recognition && isListening) recognition.stop();
   updateVoiceStatus('已暂停', 'listening-idle');
